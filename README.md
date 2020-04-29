@@ -1,4 +1,72 @@
-# holman does dotfiles
+# yaananth does dotfiles
+
+Fork from https://github.com/holman/dotfiles
+
+## changes
+
+With these changes:
+- Used new `$ZSHDOTFILES` since I use https://github.com/twpayne/dotfiles/tree/master/dot_oh-my-zsh
+
+## Installation if you have oh my sh
+
+```
+git clone https://github.com/yaananth/dotfiles.git ~/.dotfiles
+vi ~/.zshrc 
+```
+
+Then
+
+copy paste this to end of file or somewhere:
+
+```
+# START https://github.com/holman/dotfiles/blob/master/zsh/zshrc.symlink
+export ZSHDOTFILES=$HOME/.dotfiles
+
+# all of our zsh files
+typeset -U config_files
+config_files=($ZSHDOTFILES/**/*.zsh)
+
+# load the path files
+for file in ${(M)config_files:#*/path.zsh}
+do
+  source $file
+done
+
+# load everything but the path and completion files
+for file in ${${config_files:#*/path.zsh}:#*/completion.zsh}
+do
+  source $file
+done
+
+# initialize autocomplete here, otherwise functions won't be loaded
+autoload -U compinit
+compinit
+
+# load every completion after autocomplete loads
+for file in ${(M)config_files:#*/completion.zsh}
+do
+  source $file
+done
+
+unset config_files
+
+# Better history
+# Credits to https://coderwall.com/p/jpj_6q/zsh-better-history-searching-with-arrow-keys
+autoload -U up-line-or-beginning-search
+autoload -U down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+bindkey "^[[A" up-line-or-beginning-search # Up
+bindkey "^[[B" down-line-or-beginning-search # Down
+
+
+# END https://github.com/holman/dotfiles/blob/master/zsh/zshrc.symlink
+```
+
+Start a new shell and you are done!
+
+
+# Details from fork..
 
 Your dotfiles are how you personalize your system. These are mine.
 
