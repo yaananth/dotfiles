@@ -1,0 +1,1 @@
+alias devnext="cd ~/Developer/devnext/src/;./init.sh"

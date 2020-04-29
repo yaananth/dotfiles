@@ -1,0 +1,1 @@
+alias gotorunners="cd ~/Developer/runners/" 
