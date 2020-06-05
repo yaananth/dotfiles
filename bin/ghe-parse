@@ -1,0 +1,247 @@
+#!/bin/bash
+## based on https://github.com/github/knowledge-base/blob/master/enterprise-support/Technical/How%20Tos/how-to-parse-log-files.md
+
+if [[ ! $1 ]]; then
+    ls -laR | grep -Ev 'db|gz|rrd' | sort | uniq | cut -c 31-200 | sort -nr | head
+fi
+while :; do
+    case $1 in
+        -e)
+            if [ "$2" ]; then
+                if [ $2 == slow ]; then
+                    zgrep -h SlowRequest github-logs/exceptions.log* | jq -r .repo | sed -e 's/.*\///' | sort | uniq -c | sort -rn
+                elif [ $2 == trace ]; then
+                    if [ "$3" ]; then
+                        zgrep -ih -m1 "$3" github-logs/exceptions.log* | jq -r .backtrace
+                    else
+                        echo "Please specify an error message in quotes.\nExample: ghe-parse -e trace \"timeout\""
+                    fi
+                elif [ $2 == notrace ]; then
+                    if [ "$3" ]; then
+                        zgrep -ih -m1 "$3" github-logs/exceptions.log* | jq 'del(.backtrace)'
+                    else
+                        echo "Please specify an error message in quotes.\nExample: ghe-parse -e notrace \"timeout\""
+                    fi
+                elif [ $2 == webhooks ]; then
+                    grep --no-filename "TimeoutError" hookshot-logs/exceptions.log* | jq .service_data | cut -d '"' -f 5 | sort | uniq -c | sort -rn | head
+                elif [ $2 == --help ]; then
+                    echo -e "-e: used for exceptions, when passed without an argument will provide an exception count
+
+                    Arguments:
+
+                        slow: prints the top repos with slow requests
+
+                        trace: prints an error with it's stacktrace.
+                        Example: ghe-parse -e trace \"timeout\"
+
+                        notrace: prints details of an error without stacktrace.
+                        Example: ghe-parse -e notrace \"timeout\"
+
+                        webhooks: prints the top 10 webhook endpoints which are timing out \n"
+                else
+                    echo "$2 is not a valid option. For more details use: \"ghe-parse -e --help\""
+                fi
+            else
+                zgrep -vih slow github-logs/exceptions.log* | jq .message | cut -d '<' -f 1 | sort | uniq -c | sort -nr | head
+            fi >&2
+        ;;
+        -r)
+            if [ "$2" ]; then
+                if [ $2 == ip ]; then
+                    if [ "$3" ]; then
+                        echo "top requesting users" && zgrep $3 babeld-logs/babeld.log* | grep -o 'user=[^ ]*' | sort | uniq -c | sort -nr | head && echo "top 10 requests" && zgrep -h $3 system-logs/haproxy.log* | cut -d '"' -f 2 | sort | uniq -c | sort -nr | head
+                    else
+                        zgrep -oh 'ip=[^ ]*' babeld-logs/babeld.log* | sort | uniq -c | sort -nr | head
+                    fi
+                elif  [ $2 == ops ]; then
+                    echo "pushes" && zgrep -h 'cmd=git-receive-pack.*op done' babeld-logs/babeld.log* | cut -c 1-15 | uniq -c | head -n 25 && echo "clones" && zgrep -h 'cmd=git-upload-pack.*op done' babeld-logs/babeld.log* | cut -c 1-15 | uniq -c | head -n 25
+                elif [ $2 == repos ]; then
+                    zgrep -oh 'repo=[^ ]*' babeld-logs/babeld.log* | sort | uniq -c | sort -nr | head
+                elif [ $2 == agents ]; then
+                    awk '{print $12}' web-logs/github.log | sort | uniq -c | sort -nr | head
+                elif [ $2 == api ]; then
+                    if [ "$3" ]; then
+                        echo "top API endpoints" && zgrep -h -F 'api/v3' system-logs/haproxy.log* | grep $3 | cut -d '"' -f 2 | sort | uniq -c | sort -nr | head && echo "API request count" && zgrep -h -F 'api/v3' system-logs/haproxy.log* | grep $3 | cut -c 1-11 | uniq -c | head -n 25
+                    else
+                        echo " top ten ip addresses" && grep -F 'api/v3' system-logs/haproxy.log | cut -d ':' -f 4 |sort | uniq -c | sort -nr | head && echo "top API endpoints" && grep -h -F 'api/v3' system-logs/haproxy.log | cut -d '"' -f 2 | sort | uniq -c | sort -nr | head && echo "API request count" && grep -h -F 'api/v3' system-logs/haproxy.log | cut -c 1-11 | uniq -c | head -n 25
+                    fi
+                elif [ $2 == subnet ]; then
+                    if [ "$3" ]; then
+                        if [ "$4" ]; then
+                            zgrep -h $3 babeld-logs/babeld.log* | cut -c 1-$4 | uniq -c
+                        else
+                            zgrep -h $3 babeld-logs/babeld.log* | cut -c 1-13 | uniq -c
+                        fi
+                    else
+                        echo "Please include the subnet you would like to identify. Example: ghe-parse -r subnet 192.168.1.1"
+                    fi
+                elif [ $2 == users ]; then
+                    if [ "$3" ]; then
+                        echo "top repos requested by $3" && zgrep "user=$3" babeld-logs/babeld.log* | grep -oh 'repo=[^ ]*' | sort | uniq -c | sort -nr | head
+                    else
+                        echo "most frequent users" && zgrep -o "user=[^ ]*" babeld-logs/babeld.log* | cut -d '=' -f 2 | sort | uniq -c | sort -rn | head && echo "most frequent API users" && zgrep -F 'from=api' github-logs/auth.log*  | grep -o 'login=[^ ]*'| cut -d '=' -f 2 |sort | uniq -c | sort -nr | head
+                    fi
+                elif [ $2 == duration ]; then
+                    if [ "$3" ]; then
+                        zgrep -h "$3" babeld-logs/babeld.log | sed -e "s/.*duration_ms=\([^ ]*\).*/\1/" | sort -nr | head -n 30
+                    else
+                        echo "Please specify a repo. Example: ghe-parse -r duration \"this/repo\""
+                    fi
+                elif [ $2 == oauth ]; then
+                    echo "user id's for OAUTH API requests" && zgrep -F 'from=api' github-logs/auth.log* | grep OAUTH | grep -oP 'user_id=[^ ]*' | sort | uniq -c | sort -nr | head -n 25
+                elif [ $2 == --help ]; then
+                    echo -e "-r: used for requests, when passed without an argument prints request count over the past 10 minutes
+
+                    Arguments:
+
+                        ip: lists the IP addresses which make the most requests When an IP address is specified, shows top 10 users making requests from this IP as well as the top 10 requests from that IP
+                        Example: ghe-parse -r ip 127.0.0.1
+
+                        ops: prints the total pushes and clones in 10 minute intervals over 4 hours
+
+                        repos: prints the top requested repositories
+
+                        agents: prints the top API and web requests by user
+
+                        api: prints the top 10 IP addresses making API queries, the top 10 API endpoints and the overall API request count in 10 minute intervals over 4 hours, if a specific host is passed, prints API endpoints and request count in 10 minute intervals over 4 hours for that IP
+                        Example: ghe-parse -r api 127.0.0.1
+
+                        users: prints the most requesting users and API users. If a username is specified, prints the 10 most requested repos by that user.
+                        Example: ghe-parse -r users jenkins
+
+                        oauth: prints the top user ID's making OAUTH API requests.
+
+                        subnet: prints the number of requests per hour from a specific subnet. You can specify a higher number value as a second argument to view more request details (430 is the highest value). Defaults to number of requests in one hour of a day
+                        Example: ghe-parse -r subnet 192.168.1.1 430
+
+                        duration: prints the time taken for the longest running requests.
+                        Example: ghe-parse -r duration \"this/repo\" \n"
+                else
+                    echo "$2 is not a valid option. For more details use: \"ghe-parse -r --help\""
+                fi
+            else
+                echo "number of requests in 10 minute intervals" && cut -c 1-15 babeld-logs/babeld.log | uniq -c | head -n 24
+            fi >&2
+        ;;
+        -a)
+            if [ "$2" ]; then
+                if [ $2 == ldapusers ]; then
+                    zgrep -h "Invalid ldap username" github-logs/auth.log* | grep -o "login=[^ ]*" | sort | uniq -c | sort -nr | head
+                elif [ $2 == user ]; then
+                    if [ "$3" ]; then
+                        echo "number of failures:" && zgrep -h -F 'at=failure' github-logs/auth.log* | grep -o "login=$3" | sort | uniq -c | sort -nr  && echo "errors:" && zgrep -h -F "$3" github-logs/auth.log* | grep -Po 'message="\K.*?(?=")' | sort | uniq -c | sort -nr
+                    else
+                        ghe-parse -a
+                    fi
+                elif [ $2 == connection ]; then
+                    zgrep -h "unexpected return code from _gitauth" babeld-logs/babeld.log* | cut -c 1-15 | uniq -c
+                elif [ $2 == workers ]; then
+                    zgrep -h "unicorn worker killed for taking too long" github-logs/exceptions.log* | grep ldap | jq .created_at | cut -c 1-15 | uniq -c
+                elif [ $2 == oauth ]; then
+                    echo "OAUTH users failing authentication" && zgrep -F 'at=failure' github-logs/auth.log* | grep OAUTH | grep -oP 'ip=[^ ]* user_agent=[^ ]*' | sort | uniq -c | sort -nr | head
+                elif [ $2 == --help ]; then
+                    echo -e "-a: used for authentication issues, when passed without an argument prints a list of users failing authentication
+
+                    Arguments:
+
+                        user: prints failures for a specific user. If no user is specified, reverts to list of all failing users.
+                        Example: ghe-parse -a user \"hubot\"
+
+                        ldapusers: prints invalid LDAP username failures
+
+                        connection: prints LDAP connection issues
+
+                        workers: prints errors regarding gitauth connection workers being killed
+
+                        oauth: a list of IP's and Agents for failed OAUTH requests \n"
+                else
+                    echo "$2 is not a valid option. For more details use: \"ghe-parse -a --help\""
+                fi
+            else
+                zgrep -h -F 'at=failure' github-logs/auth.log* | grep -o 'login=[^ ]*'| sort | uniq -c | sort -nr | head
+            fi >&2
+        ;;
+        -s)
+            if [ "$2" ]; then
+                if [ $2 == disk ]; then
+                    zgrep -h "disk is busy" redis-logs/redis.log*
+                elif [ $2 == cpusteal ]; then
+                    if [ $(grep -i release_version -F configuration-logs/ghe-config.log* | cut -d '"' -f 2 | uniq | head -c 4 | tail -c 2) > 6 ]; then
+                        zgrep -h "soft lockup" system-logs/systemd/journalctl-k.log*
+                    else
+                        zgrep -h "soft lockup" system-logs/kern.log*
+                    fi
+                elif [ $2 == --help ]; then
+                    echo "-s: used for system errors, when passed without an argument prints syslog messages
+
+                    Arguments:
+
+                        disk: checks for slow diskIO
+
+                        cpusteal: checks for Hypervisor cpu stealing \n"
+
+                else
+                    echo "$2 is not a valid option. For more details use: \"ghe-parse -s --help\""
+                fi
+            else
+                zgrep -vh -e UFW -e CRON -e syslog-ng system-logs/syslog* | less
+            fi >&2
+        ;;
+        -q)
+            if [ "$2" ]; then
+                if [ $2 == maint ]; then
+                    zgrep perform_maintenance github-logs/resqued.log* | awk '{print $6}' | sort | uniq -c | sort -nr | head -n 10
+                elif [ $2 == --help ]; then
+                    echo -e "-q: Used for resque diagnostics, when passed without any flags prints the 20 most frequent resque log messages
+
+                    Arguments:
+
+                    maint: prints the 10 repos which show the most performed maintenance \n"
+                else
+                    echo "$2 is not a valid option. For more details use: \"ghe-parse -q --help\""
+                fi
+            else
+                zgrep "message=[^ ]*" github-logs/resqued.log* | cut -d '"' -f 2 | sort | uniq -c | sort -nr | head -n 20
+            fi >&2
+        ;;
+        --polling)
+            ghe-parse -r
+            echo -e "\n top ten ip addresses:"
+            TOP_IPS=$(grep -oh 'ip=[^ ]*' babeld-logs/babeld.log* | sort | uniq -c | sort -nr | head)
+            echo $TOP_IPS
+            TOP_IP=$(echo $TOP_IPS | cut -d "=" -f 2 | cut -d " " -f 1)
+            echo -e "\n requests from $TOP_IP:"
+            ghe-parse -r ip $TOP_IP
+            ghe-parse -r users $(grep $TOP_IP babeld-logs/babeld.log* | grep -o 'user=[^ ]*' | sort | uniq -c | sort -nr | head -n 1 | cut -d "=" -f 2)
+            echo -e "\n API usage:"
+            TOP_API_IP=$(grep -F 'api/v3' system-logs/haproxy.log | cut -d ':' -f 4 |sort | uniq -c | sort -nr | head -n 1 | awk 'NF{ print $NF }')
+
+            ghe-parse -r api
+            echo -e "\n API requests from $TOP_API_IP:"
+            ghe-parse -r api $TOP_API_IP
+            ;;
+        -h)
+            echo  "A Utility for parsing logs in a support bundle. If no option is specified, prints the 10 largest log files"
+
+                    $(ghe-parse -e --help)
+
+                    $(ghe-parse -r --help)
+
+                    $(ghe-parse -a --help)
+
+                    $(ghe-parse -q --help)
+
+                    $(ghe-parse -s --help)
+
+            echo  "--polling: creates a full printout of request polling data
+
+            -h: prints this message"
+        ;;
+        -\?*)
+            echo "invalid flag, use ghe-parse -h for help" >&2
+        ;;
+        *)
+            break
+    esac
+    shift
+done
