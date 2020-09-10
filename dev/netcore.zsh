@@ -1,0 +1,6 @@
+alias pipeinit="export NODE_TLS_REJECT_UNAUTHORIZED=0;~/Developer/github/c2c-actions-service/util/pipecli/pipe.sh create yashteston --repo yaananth/yamlsamples --overwriteRecord" 
+alias piperun="export NODE_TLS_REJECT_UNAUTHORIZED=0;~/Developer/github/c2c-actions-service/util/pipecli/pipe.sh run yashteston --workflowFile ~/Developer/github/c2c-actions-service/util/pipecli/workflows/helloworld.yml --verbose" 
+alias piperunlong="export NODE_TLS_REJECT_UNAUTHORIZED=0;~/Developer/github/c2c-actions-service/util/pipecli/pipe.sh run yashteston --workflowFile ~/Developer/github/c2c-actions-service/util/pipecli/workflows/longrunning.yml --verbose" 
+alias pipetoken="export NODE_TLS_REJECT_UNAUTHORIZED=0;~/Developer/github/c2c-actions-service/util/pipecli/pipe.sh adminToken yashteston" 
+alias gotopipe="export NODE_TLS_REJECT_UNAUTHORIZED=0;cd ~/Developer/github/c2c-actions-service/util/pipecli" 
+alias setproxyman="export https_proxy=http://127.0.0.1:9090;export http_proxy=http://127.0.0.1:9090;export NODE_TLS_REJECT_UNAUTHORIZED=0"
