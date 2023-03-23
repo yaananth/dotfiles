@@ -99,3 +99,13 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+# Note: I did "sudo ln -s /usr/local/bin/code-insiders /usr/local/bin/codei"
+alias zshconfig="codei ~/.zshrc"
+alias '??'='github-copilot-cli what-the-shell'
+alias 'git?'='github-copilot-cli git-assist'
+alias 'gh?'='github-copilot-cli gh-assist'
+
+alias pubkey="cat ~/.ssh/id_rsa.pub | pbcopy"
+alias privkey="cat ~/.ssh/id_rsa | pbcopy"
+
+alias sourcezsh="source ~/.zshrc"
