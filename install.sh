@@ -1,4 +1,6 @@
 
+# see https://docs.github.com/en/codespaces/customizing-your-codespace/personalizing-github-codespaces-for-your-account#dotfiles
+# codespace looks for install.sh in the root of the repo, and runs it
 SCRIPT_PATH=$(dirname $(readlink -f $0))
 
 # install oh-my-zsh if it doesn't exist
@@ -17,6 +19,7 @@ if [ -h ~/.zshrc ]; then
 fi
 
 # create symlink to zshrc, codespace automatically symlinks starting with ".", but we are taking over to gain control, so no ".zshrc" file
+# see https://docs.github.com/en/codespaces/customizing-your-codespace/personalizing-github-codespaces-for-your-account#dotfiles
 ln -s $SCRIPT_PATH/zshrc ~/.zshrc
 
 # clone zsh-autosuggestions if it doesn't exist
