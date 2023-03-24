@@ -7,6 +7,8 @@ SCRIPT_PATH=$(dirname $(readlink -f $0))
 if [ ! -d ~/.oh-my-zsh ]; then
     echo "Installing oh-my-zsh"
     sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    sudo chsh "$(id -un)" --shell "/usr/bin/zsh"
+    # for vscode, do "terminal.integrated.shell.linux": "/usr/bin/zsh", so that it's default
 fi
 
 # remove .zshrc if it exists
