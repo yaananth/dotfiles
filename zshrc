@@ -133,5 +133,9 @@ alias privkey="cat ~/.ssh/id_rsa | pbcopy"
 
 alias sourcezsh="source ~/.zshrc"
 
-# DOTCOM related
+# DEV related
 alias start-dotcom="script/dx/server-start"
+alias klogs="kubectl logs  --all-containers -f --max-log-requests 30 -n run-service-ns -l app=run-service"
+
+# expand is alias for "alias"
+alias expand="alias"
