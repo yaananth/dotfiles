@@ -70,7 +70,23 @@ ZSH_THEME="robbyrussell"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
+plugins=(
+    git
+
+    # https://github.com/zsh-users/zsh-autosuggestions/blob/master/INSTALL.md
+    zsh-autosuggestions
+
+    # Automatically add sudo to the beginning of a command if the user doesn't have permission to run it
+    sudo
+
+    # https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/dirhistory
+    # OPTIONKEY + arrow keys to navigate through the directory history
+    dirhistory
+
+    # https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/history
+    # Use "h" to print the history, "hsi" to search case insensitive, "hs" to search case sensitive 
+    history
+)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -101,11 +117,20 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 # Note: I did "sudo ln -s /usr/local/bin/code-insiders /usr/local/bin/codei"
 alias zshconfig="codei ~/.zshrc"
+
+# Hook up the GitHub Copilot CLI, you need to install it first with:
+# npm install -g @githubnext/github-copilot-cli
+# github-copilot-cli auth
+# https://www.npmjs.com/package/@githubnext/github-copilot-cli
 alias '??'='github-copilot-cli what-the-shell'
 alias 'git?'='github-copilot-cli git-assist'
 alias 'gh?'='github-copilot-cli gh-assist'
+eval "$(github-copilot-cli alias -- "$0")"
 
 alias pubkey="cat ~/.ssh/id_rsa.pub | pbcopy"
 alias privkey="cat ~/.ssh/id_rsa | pbcopy"
 
 alias sourcezsh="source ~/.zshrc"
+
+# DOTCOM related
+alias start-dotcom="script/dx/server-start"
