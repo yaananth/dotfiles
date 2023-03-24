@@ -18,7 +18,7 @@ if [ ! -f /usr/local/bin/node ]; then
     sudo apt-get install nodejs -y
 fi
 
-# check node version, make sure it's at least 19, if not, install it
+# check node version, make sure it's at least 19, if not, install it, this is needed for github-copilot-cli
 NODE_VERSION=$(node --version)
 NODE_VERSION_MAJOR=$(echo $NODE_VERSION | cut -d '.' -f 1 | cut -d 'v' -f 2)
 NODE_VERSION_MINOR=$(echo $NODE_VERSION | cut -d '.' -f 2)
