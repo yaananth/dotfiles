@@ -24,7 +24,7 @@ NODE_VERSION_MAJOR=$(echo $NODE_VERSION | cut -d '.' -f 1 | cut -d 'v' -f 2)
 NODE_VERSION_MINOR=$(echo $NODE_VERSION | cut -d '.' -f 2)
 
 if [ $NODE_VERSION_MAJOR -lt 19 ]; then
-    echo "Node version is less than 19, installing node 19"
+    echo "Node version is less than 19, installing node latest"
     sudo apt-get remove nodejs npm -y
     curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash -
     sudo apt-get install nodejs -y
