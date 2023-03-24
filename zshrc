@@ -74,6 +74,7 @@ plugins=(
     git
 
     # https://github.com/zsh-users/zsh-autosuggestions/blob/master/INSTALL.md
+    # If you press the → key (forward-char widget) or End (end-of-line widget) with the cursor at the end of the buffer, it will accept the suggestion, replacing the contents of the command line buffer with the suggestion.
     zsh-autosuggestions
 
     # Automatically add sudo to the beginning of a command if the user doesn't have permission to run it
