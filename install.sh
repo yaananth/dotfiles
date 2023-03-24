@@ -11,6 +11,12 @@ if [ ! -d ~/.oh-my-zsh ]; then
     # for vscode, do "terminal.integrated.shell.linux": "/usr/bin/zsh", so that it's default
 fi
 
+# install github-copilot-cli if it doesn't exist
+if [ ! -f /usr/local/bin/github-copilot-cli ]; then
+    echo "Installing github-copilot-cli"
+    npm install -g @githubnext/github-copilot-cli
+fi
+
 # remove .zshrc if it exists
 if [ -f ~/.zshrc ]; then
     rm ~/.zshrc
