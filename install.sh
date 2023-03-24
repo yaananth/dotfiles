@@ -1,6 +1,13 @@
-# remove .zshrc if it exists
+
 SCRIPT_PATH=$(dirname $(readlink -f $0))
 
+# install oh-my-zsh if it doesn't exist
+if [ ! -d ~/.oh-my-zsh ]; then
+    echo "Installing oh-my-zsh"
+    sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
+
+# remove .zshrc if it exists
 if [ -f ~/.zshrc ]; then
     rm ~/.zshrc
 fi
