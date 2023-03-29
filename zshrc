@@ -136,7 +136,7 @@ alias sourcezsh="source ~/.zshrc"
 # DEV related
 alias start-dotcom="/workspaces/github/script/dx/server-start"
 alias start-actions="/workspaces/github/script/actions/start-actions"
-alias health-actions="/workspaces/github/script/actions-launch-health-check"
+alias health-actions="/workspaces/github/script/actions-health-check"
 alias klogs="kubectl logs  --all-containers -f --max-log-requests 30 -n run-service-ns -l app=run-service"
 
 # expand is alias for "alias"
